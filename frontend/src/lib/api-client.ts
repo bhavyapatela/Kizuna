@@ -29,11 +29,15 @@ export async function apiFetch<T>(
 
   const { body, headers, ...rest } = options;
 
+  const token = typeof window !== "undefined" ? localStorage.getItem("kizuna_token") : null;
+  const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...rest,
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders,
       ...headers,
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,

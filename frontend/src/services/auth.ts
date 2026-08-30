@@ -29,10 +29,14 @@ export const authService = {
       return { user: DEMO_USER, accessToken: "demo-token" };
     }
     // REAL AUTH: FastAPI issues the session here.
-    return apiFetch<AuthResponse>("/auth/login", {
+    const res = await apiFetch<AuthResponse>("/auth/login", {
       method: "POST",
       body: payload,
     });
+    if (res.accessToken) {
+      localStorage.setItem("kizuna_token", res.accessToken);
+    }
+    return res;
   },
 
   async register(payload: RegisterPayload): Promise<AuthResponse> {
@@ -46,10 +50,14 @@ export const authService = {
       };
     }
     // REAL AUTH: FastAPI creates the account here.
-    return apiFetch<AuthResponse>("/auth/register", {
+    const res = await apiFetch<AuthResponse>("/auth/register", {
       method: "POST",
       body: payload,
     });
+    if (res.accessToken) {
+      localStorage.setItem("kizuna_token", res.accessToken);
+    }
+    return res;
   },
 
   async me(): Promise<User> {
@@ -69,6 +77,10 @@ export const authService = {
       return;
     }
     // REAL AUTH: FastAPI invalidates the session here.
-    return apiFetch<void>("/auth/logout", { method: "POST" });
+    try {
+      await apiFetch<void>("/auth/logout", { method: "POST" });
+    } finally {
+      localStorage.removeItem("kizuna_token");
+    }
   },
 };
